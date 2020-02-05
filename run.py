@@ -1,6 +1,70 @@
 import win32com.client
-import os.path, time, datetime
-NEED_OPERATION = ''
+import sys, os, time, datetime
+
+color_base= {
+-4105:'Цвет по умолчанию, по идее черный',
+1:'Черный',
+2:'Белый',
+3:'Красный',
+4:'Зеленый',
+5:'Синий',
+6:'Желтый',
+7:'Розовый',
+8:'Голубой',
+9:'Коричневый',
+10:'Темно-зеленый',
+11:'Темно-синий',
+12:'Темно-желтый',
+13:'Темно-розовый',
+14:'Темно-голубой',
+15:'Серый',
+16:'Темно-серый',
+17:'Синевато-голубой',
+18:'Фиолетовый',
+19:'Светло-желтый',
+20:'Светло-голубой',
+21:'Темно-фиолетовый',
+22:'Розоватый',
+23:'Синевато-синий',
+24:'Светло-голбоватый',
+25:'Темно-темно-синий',
+26:'Темновато-розовый',
+27:'Темновато-желтый',
+28:'Темновато-голубой',
+29:'Темновато-розовый',
+30:'Темновато-коричневый',
+31:'Темновато-голубоватый',
+32:'Синий',
+33:'Голубой',
+34:'Светло-голубой',
+35:'Светло-салатовый',
+36:'Светло-желтоватый',
+37:'Светло-голубоватый',
+38:'Светло-розоватый',
+39:'Светло-фиолеватый',
+40:'Светло-коричневатый',
+41:'Ярко-синий',
+42:'Ярко-голубоватый',
+43:'Ярко-зеленоватый',
+44:'Ярко-желтоватый',
+45:'Ярко-желтоватый',
+46:'Ярко-желтый',
+47:'Темно-серо-синий',
+48:'Серо-серый',
+49:'Серо-синий',
+50:'Серо-голубо-зеленый',
+51:'Серо-зеленый',
+52:'Серо-коричневый',
+53:'Серо-оранжево-коричневй',
+54:'Серо-розоватый',
+55:'Серо-сине-голубоватый',
+56:'Болотный',
+}
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+in_folder = 'in'
+out_folder = 'out'
 
 def remove_color_rows(wb):
     def remove_rows(color_index):
@@ -35,13 +99,14 @@ def remove_color_rows(wb):
         else:
             colors.append(this_is)
     for oper in colors:
-        print(colors.index(oper), oper)
+        print('%s: %s (%s)' % (colors.index(oper), color_base.get(int(oper), "неизвестно"), oper))
+        # print(colors.index(oper), oper, color_base.get(int(oper), "неизвестно"))
     print('Выберите цвет текста, который должен остаться:')
     answer = input()
     try:
         answer = int(answer)
         if colors[answer]:
-            print('Вы выбрали цвет: %s' % colors[answer])
+            print('Вы выбрали цвет: %s (%s)' % (color_base.get(int(oper), "неизвестно"), colors[answer]))
             remove_rows(int(colors[answer]))
             print('')
         else:
@@ -93,8 +158,13 @@ def update_operation(wb):
     sheet.ListObjects("ПоТехоперации").DataBodyRange.Font.Size = 14
     sheet.ListObjects("ПоТехоперации").Range.AutoFilter(Field=12, Criteria1=operlist[answer])
 
-def save_as_new_book(wb):
-    wb.SaveAs('C:\\work\\findcolor\\out\\test2.xlsx')
+def save_as_new_book(wb, xlsFileName):
+    filename = xlsFileName.split('\\')[-1]
+    filename = filename.split('.')[0]
+    filename = '%s%s%s' % (filename, '-new', '.xlsx')
+    filepath = os.path.join(BASE_DIR, 'out', filename)
+    wb.SaveAs(filepath)
+    print('Обработанный файл сохранен по пути: %s' % filepath)
     wb.Close()
 
 def fileUpdate(xl, xlsFileName):
@@ -104,18 +174,84 @@ def fileUpdate(xl, xlsFileName):
     remove_color_rows(wb)
     update_file(wb)
     update_operation(wb)
-    save_as_new_book(wb)
+    save_as_new_book(wb, xlsFileName)
     del wb
 
+def filefinder():
+    
+    in_folder_flag = False
+    
+    out_folder_flag = False
+
+    # print(in_folder)       
+    folder = []
+    for i in os.walk(BASE_DIR):
+        folder.append(i)
+    for address, dirs, files in folder:
+        folder = address.split('\\')[-1]
+        if in_folder == folder:
+            in_folder_flag = True
+        if out_folder == folder:
+            out_folder_flag = True
+    
+    if in_folder_flag:
+        print('Обнаружена папка файлов для обработки.')
+        print('Список файлов с которыми будем работать:')
+        folder = []
+        for i in os.walk(os.path.join(BASE_DIR, in_folder)):
+            folder.append(i)
+        file_path_list = []
+        for address, dirs, files in folder:
+            for file in files:
+                if file.split('.')[-1] == 'xlsx':
+                    print(file.split('.')[0])
+                    file_path_list.append(os.path.join(address, file))
+    else:
+        print('Папка входящих файлов не обнаружена.')
+        in_folder_path = os.path.join(BASE_DIR, in_folder)
+        print('Создаю папку: %s' % in_folder_path)
+        try:
+            os.mkdir(in_folder_path)
+        except OSError:
+            print("Ошибка при создании папки: %s \nАварийный выход." % in_folder_path)
+            exit()
+        else:
+            print('Скопируйте нужные файлы в созданную папку и запустите скрипт еще раз. \nАварийный выход.')
+            exit()
+
+    out_folder_path = os.path.join(BASE_DIR, out_folder)
+    if out_folder_flag:
+        print('Обнаружена папка результатов обработки: %s' % out_folder_path)
+        print('Очищаю')
+        try:
+            import shutil
+            shutil.rmtree(out_folder_path)
+        except OSError:
+            print ("Deletion of the directory %s failed" % out_folder_path)
+        else:
+            try:
+                os.mkdir(out_folder_path)
+            except OSError:
+                print("Ошибка при создании папки: %s \nАварийный выход." % out_folder_path)
+                exit()
+    else:
+        print('Создаю папку результатов обработки: %s' % out_folder_path)
+        try:
+            os.mkdir(out_folder_path)
+        except OSError:
+            print("Ошибка при создании папки: %s \nАварийный выход." % in_folder_path)
+            exit()
+    return file_path_list
 
 def worker():
     xl = win32com.client.DispatchEx("Excel.Application")
 
-    xlsFileName = 'C:\\work\\findcolor\\in\\test.xlsx'
-    fileUpdate(xl, xlsFileName)
-    # xl.Quit()
-    # del xl
-    print("Обновлен файл: %s \n" % (xlsFileName))
+    for file in filefinder():
+        print('------------------------')
+        print('Обработка файла: %s' % file)
+        fileUpdate(xl, file)
+    xl.Quit()
+    del xl
 
 if __name__ == "__main__":
     worker()
