@@ -1,5 +1,5 @@
 import win32com.client
-import sys, os, time, datetime
+import sys, os, time
 
 color_base= {
 -4105:'Цвет по умолчанию, по идее черный',
@@ -141,7 +141,7 @@ def update_operation(wb):
     print('')
     print('Выберите операцию, по которой фильтровать таблицу:')
     for oper in operlist:
-        print(operlist.index(oper), oper)
+        print('%s: %s' % (operlist.index(oper), oper))
     
     answer = input()
     try:
@@ -157,6 +157,11 @@ def update_operation(wb):
     sheet.Cells(6,10).WrapText = True
     sheet.ListObjects("ПоТехоперации").DataBodyRange.Font.Size = 14
     sheet.ListObjects("ПоТехоперации").Range.AutoFilter(Field=12, Criteria1=operlist[answer])
+    sheet.PageSetup.Orientation = 2
+    sheet.PageSetup.TopMargin = 58
+    sheet.PageSetup.BottomMargin = 86
+    sheet.PageSetup.LeftMargin = 14
+    sheet.PageSetup.RightMargin = 14
 
 def save_as_new_book(wb, xlsFileName):
     filename = xlsFileName.split('\\')[-1]
@@ -170,7 +175,7 @@ def save_as_new_book(wb, xlsFileName):
 def fileUpdate(xl, xlsFileName):
     wb = xl.Workbooks.Open(xlsFileName)
     xl.Visible = True
-
+    xl.DisplayAlerts = False
     remove_color_rows(wb)
     update_file(wb)
     update_operation(wb)
@@ -247,11 +252,15 @@ def worker():
     xl = win32com.client.DispatchEx("Excel.Application")
 
     for file in filefinder():
-        print('------------------------')
+        print('--------------------------------------')
         print('Обработка файла: %s' % file)
         fileUpdate(xl, file)
     xl.Quit()
     del xl
+    print('--------------------------------------')
+    print('Все файлы обработаны. Программа закроется автоматически через 10сек.')
+    print('Powered by Yegor Kowalew')
+    time.sleep(10)
 
 if __name__ == "__main__":
     worker()
