@@ -70,18 +70,22 @@ def remove_color_rows(wb):
     def remove_rows(color_index):
         mass = []
         zz = []
-        for i in range(7, getNumRows):
+        for i in range(7, getNumRows+1):
             this_is = sheet.Cells(i, 2).Font.ColorIndex
             if this_is != color_index:
-                if not zz:
-                    zz.append(i)
-                else:
-                    if zz[-1] == i-1:
-                        zz.append(i)
-                    else:
-                        mass.append(zz)
-                        zz = []
+                zz.append(i)
+
+        c = [zz[0]]
+        mass.append(c)
+        for i in zz[1:]:
+          if i == c[-1] + 1:
+            c.append(i)
+          else:
+            c = [i]
+            mass.append(c)
+
         for i in reversed(mass):
+            print('Удаляю строки с %s по %s' % (min(i), max(i)))
             delstr = 'A%s:A%s' % (min(i), max(i))
             sheet.Range(delstr).EntireRow.Delete(Shift=color_index)
 
@@ -106,7 +110,7 @@ def remove_color_rows(wb):
     try:
         answer = int(answer)
         if colors[answer]:
-            print('Вы выбрали цвет: %s (%s)' % (color_base.get(int(oper), "неизвестно"), colors[answer]))
+            print('Вы выбрали цвет: %s (%s)' % (color_base.get(int(colors[answer]), "неизвестно"), colors[answer]))
             remove_rows(int(colors[answer]))
             print('')
         else:
@@ -250,14 +254,13 @@ def filefinder():
 
 def worker():
     xl = win32com.client.DispatchEx("Excel.Application")
-
     for file in filefinder():
         print('--------------------------------------')
         print('Обработка файла: %s' % file)
         fileUpdate(xl, file)
     xl.Quit()
     del xl
-    print('--------------------------------------')
+    print('**************************************')
     print('Все файлы обработаны. Программа закроется автоматически через 10сек.')
     print('Powered by Yegor Kowalew')
     time.sleep(10)
