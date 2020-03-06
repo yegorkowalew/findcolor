@@ -1,5 +1,16 @@
 import win32com.client
 import sys, os, time
+import os
+clear = lambda: os.system('cls') #on Windows System
+# clear()
+
+from progress.bar import Bar, ShadyBar
+from progress.spinner import Spinner
+
+# spinner = Spinner('Обработка ')
+# while state != 'FINISHED':
+#     # Do some work
+#     spinner.next()
 
 color_base= {
 -4105:'Цвет по умолчанию, по идее черный',
@@ -66,11 +77,16 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 in_folder = 'in'
 out_folder = 'out'
 
-def remove_color_rows(wb):
+def remove_color_rows(wb, xlsFileName):
     def remove_rows(color_index):
         mass = []
         zz = []
+        # xlsFileName
+        clear()
+        print('Обработка файла: %s' % xlsFileName)
+        barr = ShadyBar('Определяю цвета  ', max=getNumRows+1)
         for i in range(7, getNumRows+1):
+            barr.next()
             this_is = sheet.Cells(i, 2).Font.ColorIndex
             if this_is != color_index:
                 zz.append(i)
@@ -83,9 +99,13 @@ def remove_color_rows(wb):
           else:
             c = [i]
             mass.append(c)
-
+        
+        clear()
+        print('Обработка файла: %s' % xlsFileName)
+        bar = ShadyBar('Удаляю строки    ', max=len(mass))
         for i in reversed(mass):
-            print('Удаляю строки с %s по %s' % (min(i), max(i)))
+            # print('Удаляю строки с %s по %s' % (min(i), max(i)))
+            bar.next()
             delstr = 'A%s:A%s' % (min(i), max(i))
             sheet.Range(delstr).EntireRow.Delete(Shift=color_index)
 
@@ -110,6 +130,7 @@ def remove_color_rows(wb):
     try:
         answer = int(answer)
         if colors[answer]:
+            # clear()
             print('Вы выбрали цвет: %s (%s)' % (color_base.get(int(colors[answer]), "неизвестно"), colors[answer]))
             remove_rows(int(colors[answer]))
             print('')
@@ -123,7 +144,8 @@ def remove_color_rows(wb):
     print ('Строк после обработки: ',getNumRows)
 
 def update_file(wb):
-    print('Начало обновления файла')
+    print('Нажал пымпу "Обновить всё" ждемс...')
+    # spinner = Spinner('Loading ')
     for x in wb.Connections:
         x.OLEDBConnection.BackgroundQuery = False
     
@@ -177,14 +199,45 @@ def save_as_new_book(wb, xlsFileName):
     wb.Close()
 
 def fileUpdate(xl, xlsFileName):
-    wb = xl.Workbooks.Open(xlsFileName)
-    xl.Visible = True
-    xl.DisplayAlerts = False
-    remove_color_rows(wb)
-    update_file(wb)
-    update_operation(wb)
-    save_as_new_book(wb, xlsFileName)
-    del wb
+    suffix = '%(percent)d%%'
+    with ShadyBar('Прогресс по файлу', suffix=suffix, max=6) as bar:
+        clear()
+        print('Обработка файла: %s' % xlsFileName)
+        bar.next()
+        print('')
+        print('Открываю...')
+        wb = xl.Workbooks.Open(xlsFileName)
+        xl.Visible = True
+        xl.DisplayAlerts = False
+        clear()
+        print('Обработка файла: %s' % xlsFileName)
+        bar.next()
+        print('')
+
+        remove_color_rows(wb, xlsFileName)
+        clear()
+        print('Обработка файла: %s' % xlsFileName)
+        bar.next()
+        print('')
+
+        update_file(wb)
+        clear()
+        print('Обработка файла: %s' % xlsFileName)
+        bar.next()
+        print('')
+
+        update_operation(wb)
+        clear()
+        print('Обработка файла: %s' % xlsFileName)
+        bar.next()
+        print('')
+
+        save_as_new_book(wb, xlsFileName)
+        del wb
+        clear()
+        print('Обработка файла: %s' % xlsFileName)
+        bar.next()
+        print('')
 
 def filefinder():
     
@@ -232,6 +285,7 @@ def filefinder():
     if out_folder_flag:
         print('Обнаружена папка результатов обработки: %s' % out_folder_path)
         print('Очищаю')
+        time.sleep(3)
         try:
             import shutil
             shutil.rmtree(out_folder_path)
@@ -254,16 +308,20 @@ def filefinder():
 
 def worker():
     xl = win32com.client.DispatchEx("Excel.Application")
-    for file in filefinder():
-        print('--------------------------------------')
-        print('Обработка файла: %s' % file)
+    files = filefinder()
+    for file in files:
+        # clear()
+        # print('')
+        # print('Обработка файла: %s' % file)
         fileUpdate(xl, file)
     xl.Quit()
     del xl
-    print('**************************************')
-    print('Все файлы обработаны. Программа закроется автоматически через 10сек.')
+    clear()
+    # print('********************************************************************')
+    # print('')
+    print('Все файлы обработаны. Программа закроется автоматически через 3сек.')
     print('Powered by Yegor Kowalew')
-    time.sleep(10)
+    time.sleep(3)
 
 if __name__ == "__main__":
     worker()

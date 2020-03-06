@@ -9,6 +9,9 @@ __pycache__/
 in/
 out/
 
+*.exe
+*.7z
+
 # Distribution / packaging
 .Python
 build/
