@@ -3,7 +3,7 @@ import sys, os, time
 import os
 clear = lambda: os.system('cls') #on Windows System
 # clear()
-
+from bashorg import get_bashorg
 from progress.bar import ShadyBar
 # from progress.spinner import Spinner
 from progress.counter import Countdown
@@ -90,23 +90,24 @@ def remove_color_rows(wb, xlsFileName):
             if this_is != color_index:
                 zz.append(i)
 
-        c = [zz[0]]
-        mass.append(c)
-        for i in zz[1:]:
-          if i == c[-1] + 1:
-            c.append(i)
-          else:
-            c = [i]
+        if len(zz)>0:
+            c = [zz[0]]
             mass.append(c)
-        
-        clear()
-        print('Обработка файла: %s' % xlsFileName)
-        bar = ShadyBar('Удаляю строки    ', max=len(mass))
-        for i in reversed(mass):
-            # print('Удаляю строки с %s по %s' % (min(i), max(i)))
-            bar.next()
-            delstr = 'A%s:A%s' % (min(i), max(i))
-            sheet.Range(delstr).EntireRow.Delete(Shift=color_index)
+            for i in zz[1:]:
+                if i == c[-1] + 1:
+                    c.append(i)
+                else:
+                    c = [i]
+                    mass.append(c)
+            
+            clear()
+            print('Обработка файла: %s' % xlsFileName)
+            bar = ShadyBar('Удаляю строки    ', max=len(mass))
+            for i in reversed(mass):
+                # print('Удаляю строки с %s по %s' % (min(i), max(i)))
+                bar.next()
+                delstr = 'A%s:A%s' % (min(i), max(i))
+                sheet.Range(delstr).EntireRow.Delete(Shift=color_index)
 
     sheet = wb.Worksheets('График')
     allData = sheet.UsedRange
@@ -130,8 +131,10 @@ def remove_color_rows(wb, xlsFileName):
         answer = int(answer)
         if colors[answer]:
             # clear()
-            print('Вы выбрали цвет: %s (%s)' % (color_base.get(int(colors[answer]), "неизвестно"), colors[answer]))
-            remove_rows(int(colors[answer]))
+            # print(colors[answer])
+            # print('Вы выбрали цвет: %s (%s)' % (color_base.get(int(colors[answer]), "неизвестно"), colors[answer]))
+            remove_rows(colors[answer])
+            # remove_rows(0)
             print('')
         else:
             print('Ошибка при выборе цвета. Выход')
@@ -148,6 +151,10 @@ def update_PQ(wb):
 
 def update_file(wb):
     print('Нажал пымпу "Обновить всё" ждемс...')
+    print('')
+    print('А пока читани цитатку с башорга:')
+    print('')
+    print(get_bashorg())
     for x in wb.Connections:
         x.OLEDBConnection.BackgroundQuery = False
     update_PQ(wb)
@@ -321,7 +328,7 @@ def worker():
     import random
     def sleep():
         t = 0.01
-        t += t * random.uniform(0.001, 30)  # Add some variance
+        t += t * random.uniform(0.001, 20)  # Add some variance
         time.sleep(t)
     print('Powered by Yegor Kowalew')
     for i in Countdown('Все файлы обработаны. Программа закроется автоматически через: ', suffix = ' сек.').iter(range(60)):

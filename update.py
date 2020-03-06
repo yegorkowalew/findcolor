@@ -13,7 +13,6 @@ def fileUpdate(xl, xlsFileName):
     wb = xl.Workbooks.Open(xlsFileName)
     xl.Visible = True
     xl.DisplayAlerts = False
-    # update_PQ(wb)
     x = Thread(target=update_PQ, args=(wb,))
     x.start()
     x.join()
