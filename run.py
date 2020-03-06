@@ -4,9 +4,9 @@ import os
 clear = lambda: os.system('cls') #on Windows System
 # clear()
 
-from progress.bar import Bar, ShadyBar
-from progress.spinner import Spinner
-
+from progress.bar import ShadyBar
+# from progress.spinner import Spinner
+from progress.counter import Countdown
 # spinner = Spinner('Обработка ')
 # while state != 'FINISHED':
 #     # Do some work
@@ -318,9 +318,14 @@ def worker():
     clear()
     # print('********************************************************************')
     # print('')
-    print('Все файлы обработаны. Программа закроется автоматически через 3сек.')
+    import random
+    def sleep():
+        t = 0.01
+        t += t * random.uniform(0.001, 30)  # Add some variance
+        time.sleep(t)
     print('Powered by Yegor Kowalew')
-    time.sleep(3)
+    for i in Countdown('Все файлы обработаны. Программа закроется автоматически через: ', suffix = ' сек.').iter(range(60)):
+        sleep()
 
 if __name__ == "__main__":
     worker()
