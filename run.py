@@ -72,7 +72,6 @@ color_base= {
 56:'Болотный',
 }
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 in_folder = 'in'
 out_folder = 'out'
@@ -143,14 +142,16 @@ def remove_color_rows(wb, xlsFileName):
     getNumRows = allData.Rows.Count
     print ('Строк после обработки: ',getNumRows)
 
+def update_PQ(wb):
+    wb.RefreshAll()
+    return True
+
 def update_file(wb):
     print('Нажал пымпу "Обновить всё" ждемс...')
-    # spinner = Spinner('Loading ')
     for x in wb.Connections:
         x.OLEDBConnection.BackgroundQuery = False
-    
-    wb.RefreshAll()
-    print('Конец обновления файла')
+    update_PQ(wb)
+    # print('Конец обновления файла')
 
 def update_operation(wb):
     # Техоперации совмещенные
@@ -240,9 +241,7 @@ def fileUpdate(xl, xlsFileName):
         print('')
 
 def filefinder():
-    
     in_folder_flag = False
-    
     out_folder_flag = False
 
     # print(in_folder)       
@@ -325,3 +324,4 @@ def worker():
 
 if __name__ == "__main__":
     worker()
+    # python -OO -m PyInstaller --onefile run.py
